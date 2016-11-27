@@ -1,6 +1,6 @@
 {
 	"name": "courierjs",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"description": "A simple event manager with middleware",
 	"main": "build/Courier.js",
 	"scripts": {
