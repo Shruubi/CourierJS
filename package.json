@@ -1,8 +1,8 @@
 {
-	"name": "courier",
+	"name": "courierjs",
 	"version": "0.1.0",
 	"description": "A simple event manager with middleware",
-	"main": "index.js",
+	"main": "build/Courier.js",
 	"scripts": {
 		"test": "mocha --require babel-core/register",
 		"build": "gulp",
