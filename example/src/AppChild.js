@@ -2,6 +2,7 @@ import * as React from 'react';
 
 export default class AppChild extends React.Component {
 	onButtonClick() {
+		// when the button is clicked, send fetch-api message
 		this.props.messenger.publish('fetch-api', {
 			url: 'https://jsonplaceholder.typicode.com/posts',
 			method: 'GET'

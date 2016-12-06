@@ -100,29 +100,6 @@ describe('Courier', function () {
 		});
 	});
 
-	describe('#applyMiddleware()', function () {
-		it('should propogate the data modified by the functions correctly', function () {
-			let courier = new Courier();
-
-			courier.register('test', function (data) {
-				data.val += 1;
-				return data;
-			});
-
-			courier.register('test', function (data) {
-				data.val += 1;
-				return data;
-			});
-
-			courier.register('test', function (data) {
-				data.val += 1;
-				return data;
-			});
-
-			expect(courier.applyMiddleware('test', { val: 0 })).to.eql({ val: 3 });
-		});
-	});
-
 	describe('#publish() - with middleware', function () {
 		it('should apply middleware to published event', function () {
 			let courier = new Courier();
@@ -131,19 +108,19 @@ describe('Courier', function () {
 				expect(data.val).to.eql(3);
 			});
 
-			courier.register('test', function (data) {
+			courier.register('test', function (data, next) {
 				data.val += 1;
-				return data;
+				next(data);
 			});
 
-			courier.register('test', function (data) {
+			courier.register('test', function (data, next) {
 				data.val += 1;
-				return data;
+				next(data);
 			});
 
-			courier.register('test', function (data) {
+			courier.register('test', function (data, next) {
 				data.val += 1;
-				return data;
+				next(data);
 			});
 
 			courier.publish('test', { val: 0 });

@@ -86,34 +86,31 @@ Middleware can be registered to a particular message id by using the `register()
 function. The register function takes the message id it will be applied to as the
 first param and an applicator function as the second param.
 
-The applicator function will take one parameter which is either the data object
-passed to publish if the applicator function is the first in the middleware chain,
-otherwise it is the result of applying each applicator function prior to the current
-function to the object passed to the publish method.
+The applicator function takes two parameters, the first being the data passed to
+it, the second being the continuation function. The `next()` function takes 1
+parameter, which is the value to pass as the first parameter to the next
+middleware function, or, the data to be passed to the subscribed listeners.
 
 ```
-let messenger = new Courier();
+let courier = new Courier();
 
-messenger.subscribe('test', function (data) {
-	console.log(data); // prints { val: 3 }
+courier.subscribe('test', function (data) {
+	expect(data.val).to.eql(3);
 });
 
-messenger.register('test', function (data) {
-	// data is: { val: 0 }
+courier.register('test', function (data, next) {
 	data.val += 1;
-	return data;
+	return next(data);
 });
 
-messenger.register('test', function (data) {
-	// data is: { val: 1 }
+courier.register('test', function (data, next) {
 	data.val += 1;
-	return data;
+	return next(data);
 });
 
-messenger.register('test', function (data) {
-	// data is: { val: 2 }
+courier.register('test', function (data, next) {
 	data.val += 1;
-	return data;
+	return next(data);
 });
 
 courier.publish('test', { val: 0 });
@@ -153,18 +150,16 @@ export default class App extends React.Component {
 		this.props.messenger.subscribe('fetch-api', this.onReceiveAPIPromise.bind(this));
 	}
 
+	// because we have moved to a continuation based middleware passing style
+	// we can have the deferred resolve method be the call which passes data
+	// to the subscribers
 	onReceiveAPIPromise(data) {
-		// data is a jQuery deferred object
-		data.then(this.onDataLoaded.bind(this));
-	}
-
-	onDataLoaded(data, status, xhr) {
 		// get the resolved promise and update state
-		let newState = Object.assign(this.state, {
-			apiResponse: JSON.stringify(data)
-		});
+        let newState = Object.assign(this.state, {
+            apiResponse: JSON.stringify(data)
+        });
 
-		this.setState(newState);
+        this.setState(newState);
 	}
 
 	render() {
@@ -214,8 +209,8 @@ import App from './App';
 
 // create CourierJS instance and register middleware
 let messenger = new Courier();
-messenger.register('fetch-api', function (data) {
-	return jQuery.ajax(data);
+messenger.register('fetch-api', function (data, next) {
+	jQuery.ajax(data).then(next);
 });
 
 ReactDOM.render(
@@ -226,7 +221,6 @@ ReactDOM.render(
 
 ### Possible Patches
 
-- convert middleware application from iterating over a list of functions to continuation passing style?
 - have `subscribe()` and `register()` return a unique ID that can be used to remove individual middle applicators or message receivers
 
 ### License

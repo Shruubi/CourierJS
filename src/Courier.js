@@ -46,13 +46,13 @@ export default class Courier {
 	 */
 	publish(key, data) {
 		let listeners = this.listeners[key];
+		let middleware = this.middleware[key];
 
-		if (listeners === undefined || listeners === null)
-			listeners = [];
+		if (!listeners) { listeners = []; }
+		if (!middleware) { middleware = []; }
 
-		let processedData = this.applyMiddleware(key, data);
-		listeners.forEach((listener) => {
-			listener(processedData);
+		this.dispatch(data, middleware, function(processedData) {
+			listeners.forEach((listener) => { listener(processedData); });
 		});
 	}
 
@@ -69,22 +69,28 @@ export default class Courier {
 	}
 
 	/**
-	 * @param {string} key
-	 * @param {object} data
+	 * @param {*} value
+	 * @param {Array} middleware
+	 * @param {function} done
 	 * @returns {*}
 	 */
-	applyMiddleware(key, data)  {
-		let d = data;
-		let middleware = this.middleware[key];
+	dispatch(value, middleware, done) {
+		//this function is based upon the middleware code from express
+		let idx = 0;
+		if(middleware.length === 0) {
+			return done(value);
+		}
 
-		if (middleware === undefined || middleware === null)
-			middleware = [];
+		next(value);
 
-		middleware.forEach((middlewareFunc) => {
-			d = middlewareFunc(d);
-		});
-
-		return d;
+		function next(value) {
+			let layer = middleware[idx++];
+			if(!layer) {
+				done(value);
+			} else {
+				layer(value, next);
+			}
+		}
 	}
 
 	/**
